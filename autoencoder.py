@@ -1,14 +1,19 @@
 import tensorflow as tf
 from keras.layers import Input, Dense
-from keras.models import Model
+from keras.models import Model,load_model
 from keras import regularizers
 import pandas as pd
 import numpy as np
 
 
 class AutoEncoder:
-    def __init__(self, encoding_dim):
+    def __init__(self, encoding_dim,testing,in_,in_test,out_,log_train):
         self.encoding_dim = encoding_dim
+        self.inp = in_
+        self.inp_test = in_test
+        self.out = out_
+        self.testing = testing
+        self.log_train = log_train
 
     def build_train_model(self, input_shape, encoded1_shape, encoded2_shape, decoded1_shape, decoded2_shape):
         input_data = Input(shape=(1, input_shape))
@@ -22,22 +27,26 @@ class AutoEncoder:
 
         autoencoder = Model(inputs=input_data, outputs=decoded)
 
+        
         encoder = Model(input_data, encoded3)
 
         # Now train the model using data we already preprocessed
         autoencoder.compile(loss="mean_squared_error", optimizer="adam")
 
-        train = pd.read_csv("preprocessing/rbm_train.csv", index_col=0)
+        train = pd.read_csv(self.inp, index_col=0)
         ntrain = np.array(train)
         train_data = np.reshape(ntrain, (len(ntrain), 1, input_shape))
 
         # print(train_data)
         # autoencoder.summary()
-        autoencoder.fit(train_data, train_data, epochs=1000)
+        if self.testing:
+            encoder = load_model("models/encoder.h5")
+            encoder.compile(loss="mean_squared_error",optimizer="adam")
+        else:
+            autoencoder.fit(train_data, train_data, epochs=1000)
+            encoder.save("models/encoder.h5")
 
-        encoder.save("models/encoder.h5")
-
-        test = pd.read_csv("preprocessing/rbm_test.csv", index_col=0)
+        test = pd.read_csv(self.inp_test, index_col=0)
         ntest = np.array(test)
         test_data = np.reshape(ntest, (len(ntest), 1, 55))
 
@@ -45,7 +54,7 @@ class AutoEncoder:
         # pred = np.reshape(ntest[1], (1, 1, 75))
         # print(encoder.predict(pred))
 
-        log_train = pd.read_csv("preprocessing/log_train.csv", index_col=0)
+        log_train = pd.read_csv(self.log_train, index_col=0)
         coded_train = []
         for i in range(len(log_train)):
             data = np.array(log_train.iloc[i, :])
@@ -55,9 +64,9 @@ class AutoEncoder:
             coded_train.append(shaped)
 
         train_coded = pd.DataFrame(coded_train)
-        train_coded.to_csv("features/autoencoded_data.csv")
+        train_coded.to_csv(self.out)
 
 
 if __name__ == "__main__":
-    autoencoder = AutoEncoder(20)
+    autoencoder = AutoEncoder(20,True,"preprocessing/rbm_train.csv","preprocessing/rbm_test.csv","features/autoencoded_data.csv","preprocessing/log_train.csv")
     autoencoder.build_train_model(55, 40, 30, 30, 40)

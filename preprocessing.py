@@ -6,10 +6,14 @@ import matplotlib.pyplot as plt
 import IPython
 
 class PreProcessing:
-    def __init__(self, split, feature_split):
+    def __init__(self, split, feature_split, csv_, out_, out_test,log_train):
         self.split = split
         self.feature_split = feature_split
-        self.stock_data = pd.read_csv("GSPC.csv")
+        self.stock_data = pd.read_csv(csv_)
+        self.csv = csv_
+        self.out = out_
+        self.out_test = out_test
+        self.log_train = log_train
 
     # wavelet transform and create autoencoder data
     def make_wavelet_train(self):
@@ -39,28 +43,28 @@ class PreProcessing:
         trained = pd.DataFrame(train_data)
         trained.to_csv("preprocessing/indicators.csv")
         log_train = pd.DataFrame(log_train_data, index=None)
-        log_train.to_csv("preprocessing/log_train.csv")
+        log_train.to_csv(self.log_train)
         # auto_train = pd.DataFrame(train_data[0:800])
         # auto_test = pd.DataFrame(train_data[801:1000])
         # auto_train.to_csv("auto_train.csv")
         # auto_test.to_csv("auto_test.csv")
         rbm_train = pd.DataFrame(log_train_data[0:int(self.split*self.feature_split*len(log_train_data))], index=None)
-        rbm_train.to_csv("preprocessing/rbm_train.csv")
+        rbm_train.to_csv(self.out)
         rbm_test = pd.DataFrame(log_train_data[int(self.split*self.feature_split*len(log_train_data))+1:
                                                int(self.feature_split*len(log_train_data))])
-        rbm_test.to_csv("preprocessing/rbm_test.csv")
+        rbm_test.to_csv(self.out_test)
         for i in range((len(self.stock_data) // 10) * 10 - 11):
             y = 100*np.log(self.stock_data.iloc[i + 11, 5] / self.stock_data.iloc[i + 10, 5])
             test_data.append(y)
-        test = pd.DataFrame(test_data)
-        test.to_csv("preprocessing/test_data.csv")
+        # test = pd.DataFrame(test_data)
+        # test.to_csv("preprocessing/test_data.csv")
 
     def make_test_data(self):
         test_stock = []
         # stock_data_test = pd.read_csv("stock_data_test.csv", index_col=0)
 
         for i in range((len(self.stock_data) // 10) * 10 - 11):
-            l = self.stock_data.iloc[i+11, 5]
+            l = self.stock_data.iloc[i-11, 5]
             test_stock.append(l)
             test = pd.DataFrame(test_stock)
             test.to_csv("preprocessing/test_stock.csv")
@@ -77,7 +81,7 @@ class PreProcessing:
 
 
 if __name__ == "__main__":
-    preprocess = PreProcessing(0.8, 0.25)
+    preprocess = PreProcessing(0.8, 0.25,"stock_data.csv","preprocessing/rbm_train.csv","preprocessing/rbm_test.csv","preprocessing/log_train.csv")
     preprocess.make_wavelet_train()
     preprocess.make_test_data()
 

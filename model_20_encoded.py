@@ -8,17 +8,17 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score, mean_squared_error
 
 
-def nnmodel(epochs, regularizer1, regularizer2):
+def nnmodel(epochs, regularizer1, regularizer2,encoded_train,encoded_test,log_train,log_test,test_price,predicted,price,return_acc):
 
-    train_data = np.array(pd.read_csv("60_return_forex/encoded_return_train_data.csv", index_col=0))
+    train_data = np.array(pd.read_csv(encoded_train, index_col=0))
     # length = len(train_data)
     train_data = np.reshape(train_data, (len(train_data), 20))
     print(np.shape(train_data))
-    test_data = np.array(pd.read_csv("60_return_forex/encoded_return_test_data.csv", index_col=0))
+    test_data = np.array(pd.read_csv(encoded_test, index_col=0))
     test_data = np.reshape(test_data, (len(test_data), 20))
-    train_y = np.array(pd.read_csv("forex_y/log_train_y.csv", index_col=0))
-    test_y = np.array(pd.read_csv("forex_y/log_test_y.csv", index_col=0))
-    price = np.array(pd.read_csv("forex_y/test_price.csv", index_col=0))
+    train_y = np.array(pd.read_csv(log_train, index_col=0))
+    test_y = np.array(pd.read_csv(log_test, index_col=0))
+    price = np.array(pd.read_csv(test_price, index_col=0))
 
     model = kr.models.Sequential()
     # model.add(kl.Dense(50, activation="sigmoid", activity_regularizer=kr.regularizers.l2(0)))
@@ -41,8 +41,8 @@ def nnmodel(epochs, regularizer1, regularizer2):
         # print(test_data[i])
 
     # print(model.evaluate(test_data, test_y))
-    pd.DataFrame(np.reshape(predicted_price, (len(predicted_price, )))).to_csv("60_return_forex/predicted_price.csv")
-    pd.DataFrame(price).to_csv("60_return_forex/price.csv")
+    pd.DataFrame(np.reshape(predicted_price, (len(predicted_price, )))).to_csv(predicted)
+    pd.DataFrame(price).to_csv(price)
 
     plt.figure(1)
     plt.subplot(2, 1, 1)
@@ -84,7 +84,7 @@ def nnmodel(epochs, regularizer1, regularizer2):
             ret_acc.append(acc)
     ret_avg = np.mean(ret_acc)
     ret_std = np.std(ret_acc)
-    pd.DataFrame(np.reshape(ret_acc, (len(ret_acc, )))).to_csv("60_return_forex/ret_acc.csv")
+    pd.DataFrame(np.reshape(ret_acc, (len(ret_acc, )))).to_csv(return_acc)
     prediction = np.exp(model.predict(np.reshape(test_data[-2], (1, 20))))*price[-2]
     print(prediction)
 
@@ -92,6 +92,6 @@ def nnmodel(epochs, regularizer1, regularizer2):
 
 
 if __name__ == "__main__":
-    dataset, average, std = nnmodel(500, 0.05, 0.01)
+    dataset, average, std = nnmodel(500, 0.05, 0.01,"60_return_forex/encoded_return_train_data.csv","60_return_forex/encoded_return_test_data.csv","forex_y/log_train_y.csv","forex_y/log_test_y.csv","forex_y/test_price.csv","60_return_forex/predicted_price.csv","60_return_forex/price.csv","60_return_forex/ret_acc.csv")
     print(f"Price Accuracy Average = {average} \nPrice Accuracy Standard Deviation = {std}")
 
