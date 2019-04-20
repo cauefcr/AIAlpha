@@ -3,23 +3,26 @@ import pandas as pd
 import pywt
 import matplotlib.pyplot as plt
 
+import IPython
 
 class PreProcessing:
     def __init__(self, split, feature_split):
         self.split = split
         self.feature_split = feature_split
-        self.stock_data = pd.read_csv("stock_data.csv")
+        self.stock_data = pd.read_csv("GSPC.csv")
 
     # wavelet transform and create autoencoder data
     def make_wavelet_train(self):
         train_data = []
         test_data = []
         log_train_data = []
-        for i in range((len(self.stock_data)//10)*10 - 11):
+        for i in range(22,(len(self.stock_data)//10)*10 - 11):
             train = []
             log_ret = []
             for j in range(1, 6):
-                x = np.array(self.stock_data.iloc[i: i + 11, j])
+                # if i > 11:
+                x = np.array(self.stock_data.iloc[i-11:i,j])
+                # IPython.embed()
                 (ca, cd) = pywt.dwt(x, "haar")
                 cat = pywt.threshold(ca, np.std(ca), mode="soft")
                 cdt = pywt.threshold(cd, np.std(cd), mode="soft")

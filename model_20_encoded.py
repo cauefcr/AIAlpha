@@ -23,6 +23,7 @@ def nnmodel(epochs, regularizer1, regularizer2):
     model = kr.models.Sequential()
     # model.add(kl.Dense(50, activation="sigmoid", activity_regularizer=kr.regularizers.l2(0)))
     model.add(kl.Dense(20, input_dim=20, activation="tanh", activity_regularizer=kr.regularizers.l2(regularizer1)))
+    model.add(kl.Dense(20, activation="tanh", activity_regularizer=kr.regularizers.l2(regularizer1)))
     model.add(kl.Dense(20, activation="tanh", activity_regularizer=kr.regularizers.l2(regularizer2)))
     # model.add(kl.Dense(100))
     model.add(kl.Dense(1))
